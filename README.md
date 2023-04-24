@@ -1,4 +1,4 @@
-# Fontaine_Rynearson_2023
+# Fontaine Rynearson 2023 (in review at L&O)
 Associated code and custom database used for Fontaine and Rynearson 2023 manuscript 
 
 Files:
