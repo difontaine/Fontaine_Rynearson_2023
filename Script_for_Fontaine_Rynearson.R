@@ -6,6 +6,7 @@
 #Field Sample Analysis for 18S 6-year time series from Narragansett Bay
 library(phyloseq)
 library(plyr)
+library(reshape2)
 library(tidyverse)
 library(dplyr)
 library(data.table)
@@ -24,8 +25,8 @@ library(vegan)
 library(cluster)
 library(factoextra)
 library(ggdendro)
-library(reshape2)
 library(grid)
+library(ggpubr)
 
 ##Theme for plotting
 y <- theme(legend.key = element_rect(fill = "white") ,
@@ -44,7 +45,6 @@ envi_data <- read_csv("Envdata.csv")
 envi_data$month <- month(envi_data$Date)
 envi_data$year <- year(envi_data$Date)
 
-
 #group by month and calculate average temp, DIN and sal
 env_data_summarized <- envi_data%>%
   group_by(month) %>%
@@ -55,8 +55,8 @@ temp_plot <-  ggplot(env_data_summarized, aes(as.factor(month), avg_temp))+
   geom_line(size = 1, color='black', group = 1)+
   geom_point(aes(x=month, y=avg_temp), size = 2.5, data= env_data_summarized)+
   y+
-  theme(axis.title = element_text(size = 14),
-        axis.text = element_text(size =12))+
+  theme(axis.title = element_text(size = 17),
+        axis.text = element_text(size =15))+
   geom_errorbar(aes(ymin=avg_temp-sd_temp, ymax=avg_temp+sd_temp), width = 0.2)+
   labs(x = "Month", y = "Average monthly temperature (˚C) (± s.d.)")+
   theme(panel.grid.major = element_blank(), 
@@ -67,19 +67,19 @@ temp_plot <-  ggplot(env_data_summarized, aes(as.factor(month), avg_temp))+
   annotate(geom = "text", x = 1, y =  25, label = "a)", fontface =2, size = 6)
 #ylim(c(-1,3.5))
 temp_plot  
-ggsave('Manuscript/Supplemental_Info/avg_temp.png', plot = temp_plot ,
-       scale = 1, width = 12, height = 14 , units ="cm",
+ggsave('Manuscript/Supplemental_Info/Figures/avg_temp.png', plot = temp_plot ,
+       scale = 1, width = 5.5, height = 5 , units ="in",
        dpi = 300)
 
-env_data_summarized[,-1]
+#env_data_summarized[,-1]
 
 #plot DIN
 DIN_plot <-  ggplot(env_data_summarized, aes(factor(month), avg_DIN))+
   geom_line(size = 1, color='black', group = 1)+
   geom_point(aes(x=, y=avg_DIN), size = 2.5, data= env_data_summarized)+
   y+
-  theme(axis.title = element_text(size = 14),
-        axis.text = element_text(size =12))+
+  theme(axis.title = element_text(size = 17),
+        axis.text = element_text(size =15))+
   geom_errorbar(aes(ymin=avg_DIN-sd_DIN, ymax=avg_DIN+sd_DIN), width = 0.2)+
   labs(x = "Month", y = "Average monthly DIN (˚µM) (± s.d.)")+
   theme(panel.grid.major = element_blank(), 
@@ -90,8 +90,8 @@ DIN_plot <-  ggplot(env_data_summarized, aes(factor(month), avg_DIN))+
  annotate(geom = "text", x = 1, y =  15, label = "b)", fontface =2, size = 6)
 #ylim(c(-1,3.5))
 DIN_plot  
-ggsave('Manuscript/Supplemental_Info/avg_DIN.png', plot = DIN_plot   ,
-       scale = 1, width = 12, height = 14 , units ="cm",
+ggsave('Manuscript/Supplemental_Info/Figures/avg_DIN.png', plot = DIN_plot   ,
+       scale = 1, width = 5.5, height = 5 , units ="in",
        dpi = 300)
 
 ### RAW DATA PROCESSING
@@ -178,10 +178,12 @@ field_sample_reps <- all_diat_df_with_taxa %>%
   filter(Sample %in% c("SF80b", "SF81b", "SF82b")) %>%
   select(ASV,Sample,per_rel)
 
-#do anova to test for differences in relative abundance and 
-two_way <- aov(per_rel ~ Sample, data = field_sample_reps)
-summary(two_way)
-TukeyHSD(two_way, which = "Sample")
+field_sample_reps$presence <- 1
+
+#do anova to test for differences in presence b/t field samples
+fst <- aov(presence ~ Sample, data = field_sample_reps)
+summary(fst)
+TukeyHSD(fst, which = "Sample")
 
 
 #Figuring out how many ASVs per taxa level 
@@ -219,7 +221,8 @@ PA <- (USA[USA$NAME_1=="Pennsylvania",])
 MD <- (USA[USA$NAME_1=="Maryland",])
 
 #Plot zoomed out
-plot(RI, bg = "transparent", border = "black", xaxt = "n", yaxt = "n", col = "grey70", ylim = c(40, 42.5), xlim = c(-73,-71.2), cex.axis=1)
+pdf('Manuscript/Figs/zoomed_out_map.pdf')
+plot(RI, bg = "white", border = "black", xaxt = "n", yaxt = "n", col = "grey70", ylim = c(40, 42.5), xlim = c(-73,-70), cex.axis=1)
 plot(MA, axes = T, col = "grey70", border = "black", add = T)
 plot(CT, axes = T, col = "grey70", border = "black", add = T)
 plot(NY, axes = T, col = "grey70", border = "black", add = T)
@@ -227,22 +230,24 @@ plot(NJ, axes = T, col = "grey70", border = "black", add = T)
 plot(PA, axes = T, col = "grey70", border = "black", add = T)
 plot(MD, axes = T, col = "grey70", border = "black", add = T)
 
-
+#save zoomed out plot
+dev.off()
 
 #Plot zoomed in
-plot(RI, bg = "white", border = "black", axes = T, col = "grey90", ylim = c(41, 42.2), xlim = c(-70.97,-70.94))
+pdf('Manuscript/Figs/zoomed_in_map.pdf')
+plot(RI, bg = "white", border = "black", axes = T, col = "grey90", ylim = c(41.3, 41.9), xlim = c(-71,-71))
 plot(MA, axes = T, col = "grey90", border = "black", add = T)
 plot(CT, axes = T, col = "grey90", border = "black", add = T)
 plot(NY, axes = T, col = "grey90", border = "black", add = T)
 
-points(-71.4, 41.567, pch =21, bg = "black", cex = .8, lwd = 1)
-
+points(-71.4, 41.567, pch =21, bg = "black", cex = 1, lwd = 1)
 
 #I didn't end up adding an arrow and scale bar so these may need to be adjusted for size, but they're included here if you want them
 library(prettymapr)
 addnortharrow(pos = "topright", padin = c(0.1,0.1), scale = 1, lwd = 1, border = "black", cols = c("white","black"), text.col = "black")
 addscalebar(plotunit = NULL, plotepsg = NULL, widthhint = 0.25, unitcategory = "metric", htin = 0.1, padin = c(2,0.2), style = "bar", bar.cols = c("black","white"),
             lwd = 1, linecol = "black", tick.cex = 0.5, labelpadin = 0.15, label.cex = 1.2, label.col = "black")
+dev.off()
 
 
 #filter and only keep ASVs that have a percent rel abundance greater than 0.075 for the significance testing
@@ -296,6 +301,8 @@ mock_exp <- mock_comp %>%
   select(-Sample)
 
 mock_exp$Replicate <- "Exp."
+mock_exp$sd <- "NA"
+
 
 #only plotting the average replicate information
 mock_comp_noexp <- mock_comp %>% 
@@ -324,17 +331,26 @@ summary(mock_4_aov) #mock 3 in paper (really mock 4) is 0.97 (only used 3 mock c
 
 mock_avg <- mock_comp_noexp %>%
   dplyr::group_by(MC,Species) %>%
-  dplyr::summarise(avg_rel = mean(avg_rel))
+  dplyr::summarise(sd = sd(avg_rel, na.rm = TRUE), avg_rel = mean(avg_rel))
 
 
 mock_additional <- ddply(mock_avg, .(MC), summarise, avg_rel = 100 - sum(avg_rel))
 mock_additional$Species <- '<0.075% of Reads'
+mock_additional$sd <- 'NA'
 
 total_mock <- rbind(mock_additional , mock_avg)
 
 total_mock$Replicate <- "Obs."
 
 total_mock <- rbind(total_mock, mock_exp)
+
+#filter for MC1, MC3 and MC4
+total_mock_supp_table <- total_mock %>%
+  filter(MC %in% c("MC1", "MC3", "MC4")) %>%
+  filter(Species != "<0.075% of Reads")
+
+#save for supplemental table
+write_csv(total_mock_supp_table, "mock_samples/mock_supp_table.csv" )
 
 
 #do anova to test for difference between observed and expected
@@ -473,20 +489,20 @@ total_genus_freq_all$freq <- total_genus_freq_all$freq*100
 gen_freq <- ggplot(total_genus_freq_all, aes(x = reorder(Genus, -freq), y = freq, fill = Present_LM))+
   geom_bar(stat = "identity", color = "black", width = 0.8, size = 0.2)+
   y+
-  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1, size = 8,family = "Times", face = "italic"),
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1, size = 10,family = "Times", face = "italic"),
         axis.title.x = element_text(size = 12, family = "Times", face = "bold"),
         axis.title.y = element_text(size = 12, family = "Times", face = "bold"),
         axis.text.y = element_text(size = 10,family = "Times"))+
-  theme(legend.text = element_text(size = 8))+
-  theme(legend.title = element_text(size = 10))+
+  theme(legend.text = element_text(size = 10))+
+  theme(legend.title = element_text(size = 12))+
   theme(panel.border = element_rect(colour = "black", fill = NA))+
   labs(x = "Genus", y = "Frequency of occurence (%)")+
   scale_fill_manual(values = c("black", "grey70", "white"), name = "Observed presence with LM", labels = c("Yes", "Not from 2008 - 2014 (study period)", "Never"))+
-  theme(legend.position = c(0.7, 0.8))+
+  theme(legend.position = c(0.8, 0.7))+
   scale_y_continuous(expand = c(0,1), limits = c(0,100))
 gen_freq
 
-ggsave("Manuscript/genus_freq.pdf", plot = gen_freq, device = "pdf", width = 13, height = 10, units = c("cm"),
+ggsave("Manuscript/Figs/genus_freq.pdf", plot = gen_freq, device = "pdf", width = 7, height = 3.5, units = c("in"),
        dpi = 600)
 
 #### END CODE FOR FIGURE 3 #####
@@ -532,6 +548,23 @@ meta_count <- meta_count %>%
 meta_count_joined <- meta_count %>%
   left_join(diat_count_species_long_rich, by = c("sample_contents" = "DATE")) 
 
+#calculate averaged and range for LM richness
+count_rich <- meta_count_joined_method %>%
+  filter(rich_method == "count_richness")
+
+#but first test fr outliers
+Boxplot(richness ~ season, data = count_rich)
+
+#remove outliers
+count_rich <- count_rich[-c(61,80),]
+
+mean(count_rich$richness, na.rm = TRUE)
+min(count_rich$richness, na.rm = TRUE)
+max(count_rich$richness, na.rm = TRUE)
+
+kruskal.test(count_rich$richness~ count_rich$season) # yes seasonal difference in LM based richness
+
+Boxplot(richness ~ season, data = count_rich) #count richness (LM) is highest in summer and lowest in spring
 
 #Make longer so that can separate by richness method
 meta_count_joined_method <- meta_count_joined %>%
@@ -572,21 +605,22 @@ species_rich_plot <- ggplot(meta_count_joined, aes(x=as.factor(season), y=meta_r
   stat_summary(fun=mean, geom="point", shape=16, size=2, color="black", fill="black")+
   labs(x = "Season", y = "ASV richness") +
   ylim(0,65)+
-  theme_classic() + # remove panel background and gridlines
+  y+
+  #theme_classic() + # remove panel background and gridlines
   theme(panel.border = element_rect(linetype = "solid",
                                     colour = "black", fill = "NA", size = 0.5))+
-  theme(axis.title = element_text(size = 14, face = "bold", family = "Times"))+
-  theme(axis.text = element_text(size = 12, family = "Times"),
+  theme(axis.title = element_text(size = 12, face = "bold", family = "Times"))+
+  theme(axis.text = element_text(size = 10, family = "Times"),
         legend.text = element_text(size = 16, family = "Times"),
         legend.title = element_text(size = 18, face = "bold", family = "Times"))+
-  annotate("text", x=0.6, y=65, label = "a)", family = "Times", fontface = 2, size = 5)+
-  annotate(geom = "text", x = "Winter", y = 0, label = "n = 20", fontface = 1,size = 4, family = "Times")+
-  annotate(geom = "text", x = "Spring", y = 0, label = "n = 19", fontface = 1,size = 4, family = "Times")+
-  annotate(geom = "text", x = "Summer", y = 0, label = "n = 20", fontface = 1,size = 4, family = "Times")+
-  annotate(geom = "text", x = "Fall", y = 0, label = "n = 21", fontface = 1,size = 4, family = "Times")
+  annotate("text", x=0.6, y=65, label = "a)", family = "Times", fontface = 2, size = 4)+
+  annotate(geom = "text", x = "Winter", y = 0, label = "n = 20", fontface = 1,size = 3, family = "Times")+
+  annotate(geom = "text", x = "Spring", y = 0, label = "n = 19", fontface = 1,size = 3, family = "Times")+
+  annotate(geom = "text", x = "Summer", y = 0, label = "n = 20", fontface = 1,size = 3, family = "Times")+
+  annotate(geom = "text", x = "Fall", y = 0, label = "n = 21", fontface = 1,size = 3, family = "Times")
 species_rich_plot
 
-ggsave("Manuscript/species_rich_metaonly.pdf", plot = species_rich_plot, device = "pdf", width = 12, height = 10, units = c("cm"),
+ggsave("Manuscript/Figs/species_rich_metaonly.tiff", plot = species_rich_plot, device = "tiff", width = 3.5, height = 3, units = c("in"),
        dpi = 600)
 
 
@@ -602,7 +636,7 @@ diat_long_spp <- diat %>%
   pivot_longer(cols = 5:155,
                names_to = "Species",
                values_to = "Count") %>%
-  select(-Unknown_diatoms) %>%
+select(-Unknown_diatoms) %>%
   filter(grepl('spp', Species))
 
 
@@ -647,7 +681,7 @@ diat_unk_genus$month <- as.factor(diat_unk_genus$month) #make year factor
 diat_unk_genus$year[diat_unk_genus$year == "2008"] <- "2009"
 
 diat_unk_genus <- diat_unk_genus %>%
-  select(percent_unk_genus, year, month)
+ select(percent_unk_genus, year, month)
 
 just_spp_count <- just_spp_count %>%
   select(percent_unk_species, year, month)
@@ -706,7 +740,7 @@ unk_joined_boxplot <- ggplot(joined_unk_long, aes(x=as.factor(year), y=Percent, 
   annotate(geom = "text", x = "2014", y = -3, label = "n = 52", fontface = 1,size = 4, family = "Times")
 unk_joined_boxplot 
 
-ggsave("unk_diatom_boxplot_year_joined.png", plot = unk_joined_boxplot , device = "png", width = 15, height = 12, units = c("cm"),
+ggsave("Manuscript/Supplemental_Info/Figures/unk_diatom_boxplot_year_joined.png", plot = unk_joined_boxplot , device = "png", width = 15, height = 12, units = c("cm"),
        dpi = 400)
 
 
@@ -770,19 +804,18 @@ chl_richness_all <- meta_count_chl %>%
                                     colour = "black", fill = "NA", size = 0.5))+
   scale_fill_manual(name = "Season", values = c("dodgerblue4", "darkseagreen","darkred", "darkorange"))+
   y+
-  theme(axis.title = element_text(size = 14, face = "bold", family = "Times"))+
-  theme(axis.text = element_text(size = 12, family = "Times"))+
+  theme(axis.title = element_text(size = 12, face = "bold", family = "Times"))+
+  theme(axis.text = element_text(size = 10, family = "Times"))+
   ylim(c(0,65))+
   theme(legend.position = c(0.87, 0.8))+
   # annotate(geom = "text", x = 25, y = 60, label = "y = -0.08x^2 + 1.6x + 32.4", fontface = 3,size = 3.5)+
-  annotate("text", x=20, y=60, label = as.character(expression("y == -0.07*x^{2}")), parse = T, family = "Times")+
-  annotate("text", x=24, y=55, label = as.character(expression("R^{2} == 0.13")), parse = T, family = "Times")+
-  annotate("text", x=0, y=65, label = "b)", family = "Times", fontface = 2, size = 5)+
-  annotate("text", x=26.5, y=60, label = "+ 1.6x + 32.4", family = "Times")+
-  theme(axis.title = element_text(size = 14, family = "Times", face = "bold"), axis.text = element_text(size = 12, family = "Times"))
+  annotate("text", x=19.6, y=62, label = as.character(expression("y == -0.07*x^{2}")), parse = T, family = "Times", size = 3)+
+  annotate("text", x=24, y=55, label = as.character(expression("R^{2} == 0.13")), parse = T, family = "Times", size = 3)+
+  annotate("text", x=0, y=65, label = "b)", family = "Times", fontface = 2, size = 4)+
+  annotate("text", x=26.5, y=62, label = "+ 1.6x + 32.4", family = "Times", size = 3)
 chl_richness_all
 
-ggsave("species_rich_chl.pdf", plot =chl_richness_all , device = "pdf", width = 12, height = 10, units = c("cm"),
+ggsave("Manuscript/Figs/species_rich_chl.tiff", plot =chl_richness_all , device = "tiff", width = 3.5, height = 3, units = c("in"),
        dpi = 600)
 
 ### END OF CODE FOR FIGURE 4 ###
@@ -997,15 +1030,15 @@ fviz_nbclust(species_transformed_all, kmeans, method = "silhouette")+
 rda.plot_segment <- ggplot()+
   geom_segment(data = species_scores_select_all, aes(x = 0, y = 0, xend = RDA1, yend = RDA2), color = "grey", arrow = arrow(length = unit(0.01, "npc"))) +
   geom_segment(data = env_scores_plot_all, aes(x = 0, y = 0, xend = RDA1, yend = RDA2), color = "black", arrow = arrow(length = unit(0.01, "npc")))+
-  annotate(geom = "text", x = -0.95, 0.22, label = "TEMP", fontface =2)+
-  annotate(geom = "text", x = -0.88,y = -.55, label = "SI", fontface =2)+
-  annotate(geom = "text", x = -0.6, y = -0.86, label = "DIP", fontface =2)+
-  annotate(geom = "text", x = -0.01, y = -1.05, label = "DIN", fontface =2)+
-  annotate(geom = "text", x = -0.25, y = -1.02, label = "SAL", fontface =2)+
+  annotate(geom = "text", x = -0.9, 0.22, label = "TEMP", fontface =2, family = "Times")+
+  annotate(geom = "text", x = -0.88,y = -.55, label = "SI", fontface =2, family = "Times")+
+  annotate(geom = "text", x = -0.6, y = -0.86, label = "DIP", fontface =2, family = "Times")+
+  annotate(geom = "text", x = -0.01, y = -1.07, label = "DIN", fontface =2, family = "Times")+
+  annotate(geom = "text", x = -0.25, y = -1.02, label = "SAL", fontface =2, family = "Times")+
   theme(panel.border = element_rect(colour = "black", fill=NA, size=0.5))+
   geom_rect(aes(xmin = -0.25, xmax = 0.3, ymin = -0.25, ymax = 0.25),
-            fill = "transparent", color = "grey", size = 1.0) +
-  annotate("Text", x = 0.15, y = -0.18, label = "Species", color="black", family="Times", fontface = 2, size=4)
+            fill = "transparent", color = "grey", size = 0.6) +
+  annotate("Text", x = 0.15, y = -0.18, label = "Species", color="black", family="Times", fontface = 2, size=3)
 rda.plot_segment
 
 site_scores_cluster$cluster[site_scores_cluster$cluster== "1"] <- "Summer-Fall"
@@ -1025,8 +1058,8 @@ complete_rda<- rda.plot_segment +
   #scale_fill_manual(values = c("dodgerblue4","darkseagreen", "darkred" ,"darkorange"))+
   #scale_color_manual(values = c("gray27", "gray80"))+
   theme(legend.position = "none")+
-  #theme(axis.title = element_text(size = 14, family = "Times", face = "bold"))+
-  #theme(axis.text = element_text(size = 12, family = "Times"))+
+  theme(axis.title = element_text(size = 14, family = "Times", face = "bold"))+
+  theme(axis.text = element_text(size = 12, family = "Times"))+
   geom_vline(xintercept=c(-0,0), linetype="dotted")+
   geom_hline(yintercept=c(-0,0), linetype="dotted")
 
@@ -1034,7 +1067,7 @@ complete_rda<- rda.plot_segment +
 complete_rda
 
 
-ggsave("Manuscript/dbRDA_plot_allASVs_no_species_4.14.pdf", plot = complete_rda, device = "pdf", width = 15, height = 13, units = c("cm"),
+ggsave("Manuscript/Figs/dbRDA_plot_allASVs_no_species_4.14.tiff", plot = complete_rda, device = "tiff", width = 3.5, height = 3.2, units = c("in"),
        dpi = 600)
 
 #getting a no ckuster plot to obtain the legend
@@ -1049,15 +1082,15 @@ nocluster_plot <- rda.plot_segment+
   #scale_fill_manual(values = c("dodgerblue4","darkseagreen", "darkred" ,"darkorange"))+
   #scale_color_manual(values = c("gray27", "gray80"))+
   theme(legend.position = "bottom")+
-  #theme(axis.title = element_text(size = 14, family = "Times", face = "bold"))+
-  #theme(axis.text = element_text(size = 12, family = "Times"))+
+  theme(legend.text = element_text(size = 10, family = "Times"))+
+  theme(legend.title = element_blank())+
   geom_vline(xintercept=c(-0,0), linetype="dotted")+
   geom_hline(yintercept=c(-0,0), linetype="dotted")
 
 # annotate(geom = "text", x = -1, y = .98, label = "a)", fontface = 2,size = 5)
 nocluster_plot
 
-ggsave("Manuscript/noclusterplot.pdf", plot = nocluster_plot, device = "pdf", width = 17, height = 14, units = c("cm"),
+ggsave("Manuscript/Figs/noclusterplot_legend.tiff", plot = nocluster_plot, device = "tiff", width = 3.5, height = 3.2, units = c("in"),
        dpi = 600)
 
 #### END OF CODE FOR FIGURE 5 ###
@@ -1109,10 +1142,12 @@ species_rda <- ggplot()+
   annotate(geom = "text", x = 0.146, y = -.032, label = "L. min2", fontface = 3,size = 3.5)+
   annotate(geom = "text", x = 0.05, y = -.07, label = "Ch. dec1", fontface = 3,size = 3.5)+
   annotate(geom = "text", x = -0.16, y = -.01, label = "C. pel1", fontface = 3,size = 3.5)+
-  annotate(geom = "text", x = 0.12, y = .01, label = "Cy. str1", fontface = 3,size = 3.5)
+  annotate(geom = "text", x = 0.12, y = .01, label = "Cy. str1", fontface = 3,size = 3.5)+
+  theme(axis.title = element_text(size = 14, family = "Times", face = "bold"))+
+  theme(axis.text = element_text(size = 12, family = "Times"))
 species_rda
 
-ggsave("dbRDA_species_inset.png", plot = species_rda, device = "png", width = 15, height = 12, units = c("cm"),
+ggsave("Manuscript/Figs/dbRDA_species_inset.png", plot = species_rda, device = "png", width = 15, height = 12, units = c("cm"),
        dpi = 400)
 
 ### END OF CODE FOR SUPPLEMENTAL 4 ###
@@ -1176,10 +1211,10 @@ shade_cap2$x2 <-  as_date(shade_cap2$x2 )
 
 
 RDA_timeseries <- ggplot(site_scores_date_all, aes(Date,RDA1))+
-  geom_line(size = 1.5, color='black')+
-  geom_point(aes(x=Date, y=RDA1), size = 2.5, data= site_scores_date_all)+
   geom_rect(data = shade,aes(x = NULL,y = NULL,xmin = x1,xmax = x2,ymin = y1,ymax = y2,fill = season),
             alpha = 0.2)+
+  geom_line(size = 0.7 ,color='black')+
+  geom_point(aes(x=Date, y=RDA1), size = 1, data= site_scores_date_all)+
   #theme_black()+
   y+
   scale_fill_manual(name = "Season", 
@@ -1191,18 +1226,20 @@ RDA_timeseries <- ggplot(site_scores_date_all, aes(Date,RDA1))+
   theme(panel.border = element_rect(fill=NA, colour = "black", size=1),
         #legend.text = element_text(size = 14),
         #legend.title = element_text(size = 16),
-        axis.text = element_text(size = 12, family = "Times"),
-        axis.title = element_text(size = 14, family = "Times", face = "bold"))+
+        axis.text = element_text(size = 8, family = "Times"),
+        axis.title.y = element_text(size = 10, family = "Times", face = "bold"),
+        axis.title.x = element_blank()) +
   theme(legend.position = "none")
+  
 RDA_timeseries
 
-ggsave("RDA_timeseries_allASVs_4.14.tiff", plot =   RDA_timeseries, device = "tiff", width = 22, height = 12, units = c("cm"),
-       dpi = 300)
+ggsave("Manuscript/Figs/RDA_timeseries_allASVs_4.14.tiff", plot =   RDA_timeseries, device = "tiff", width = 3.6, height = 2, units = c("in"),
+       dpi = 600)
 
 #RDA time series with CAP2 values
 RDA_timeseries_CAP2 <- ggplot(site_scores_date_all, aes(Date,RDA2))+
-  geom_line(size = 1.5, color='black')+
-  geom_point(aes(x=Date, y=RDA2), size = 2.5, data= site_scores_date_all)+
+  geom_line(size = 0.7, color='black')+
+  geom_point(aes(x=Date, y=RDA2), size = 1, data= site_scores_date_all)+
   geom_rect(data = shade_cap2,aes(x = NULL,y = NULL,xmin = x1,xmax = x2,ymin = y1,ymax = y2,fill = season),
             alpha = 0.2)+
   y+
@@ -1214,17 +1251,25 @@ RDA_timeseries_CAP2 <- ggplot(site_scores_date_all, aes(Date,RDA2))+
   theme(panel.border = element_rect(fill=NA, colour = "black", size=1),
         #legend.text = element_text(size = 14),
         #legend.title = element_text(size = 16),
-        axis.text = element_text(size = 12, family = "Times"),
-        axis.title = element_text(size = 14, family = "Times", face = "bold"))+
+        axis.text = element_text(size = 8, family = "Times"),
+        axis.title.y = element_text(size = 10, family = "Times", face = "bold"),
+        axis.title.x = element_blank())+
   theme(legend.position = "none")
 RDA_timeseries_CAP2
 
-ggsave("RDA_timeseries_allASVs_CAP2.tiff", plot =   RDA_timeseries_CAP2, device = "tiff", width = 22, height = 12, units = c("cm"),
-       dpi = 300)
+ggsave("Manuscript/Figs/RDA_timeseries_allASVs_CAP2.tiff", plot =   RDA_timeseries_CAP2, device = "tiff", width = 3.5, height = 2, units = c("in"),
+       dpi = 600)
+
+timeseries_merged <- ggarrange(RDA_timeseries, RDA_timeseries_CAP2, ncol = 1, nrow = 2, common.legend = FALSE)
+
+ggsave("Manuscript/Figs/timeseries_merged.tiff", plot =  timeseries_merged, device = "tiff", width = 3.5, height = 4, units = c("in"),
+       dpi = 600)
+
+
 
 #then need to graph temp and DIN values separately
 RDA_Temp <-  ggplot(site_scores_date_all, aes(Date,Temp))+
-  geom_line(size = 1, color='black', linetype = 6)+
+  geom_line(size = 0.7, color='black', linetype = 6)+
   #geom_point(aes(x=date_value, y=Temp), size = 2.5, data= site_scores_date)+
   #theme_black()+
   y+
@@ -1233,11 +1278,11 @@ RDA_Temp <-  ggplot(site_scores_date_all, aes(Date,Temp))+
   labs(y = "Temperature (˚C)", x = "Time Series Day")+
   scale_x_continuous(expand = c(0,0),breaks = seq(1,79, by = 4))+
   scale_y_continuous(position = "right")+
-  theme(panel.border = element_rect(fill=NA, colour = "black", size=1),
+  theme(panel.border = element_rect(fill=NA, colour = "transparent", size=1),
         #legend.text = element_text(size = 14),
         #legend.title = element_text(size = 16),
-        axis.text = element_text(size = 12, family = "Times"),
-        axis.title = element_text(size = 14, family = "Times", face = "bold"))+
+        axis.text = element_text(size = 8, family = "Times"),
+        axis.title = element_text(size = 10, family = "Times", face = "bold"))+
   theme(axis.text.x = element_blank(),
         axis.title.x = element_blank(),
         axis.ticks.x = element_blank())+
@@ -1248,23 +1293,23 @@ RDA_Temp <-  ggplot(site_scores_date_all, aes(Date,Temp))+
 RDA_Temp
 
 
-ggsave("RDA_Temp.tiff", plot =   RDA_Temp, bg = "transparent", device = "tiff", width = 21.77, height = 10.86, units = c("cm"),
-       dpi = 300)
+ggsave("Manuscript/Figs/RDA_Temp.tiff", plot =   RDA_Temp, bg = "transparent", device = "tiff", width = 3.27, height = 1.74, units = c("in"),
+       dpi = 600)
 
 RDA_DIN <-  ggplot(site_scores_date_all, aes(Date,DIN_μM))+
-  geom_line(size = 1, color='black', linetype = 6)+
+  geom_line(size = 0.7, color='black', linetype = 6)+
   # geom_point(aes(x=date_value, y=Temp), size = 2.5, data= site_scores_date)+
   y+
   scale_fill_manual(name = "Season", 
                     values = c('dodgerblue4',"darkseagreen","darkred","darkorange"))+
   labs(y = "DIN (µM)", x = "Time Series Day")+
-  scale_x_continuous(expand = c(0,0),breaks = seq(1,79, by = 4))+
+  scale_x_continuous(expand = c(0,0),breaks = seq(1,80, by = 4))+
   scale_y_continuous(position = "right")+
-  theme(panel.border = element_rect(fill=NA, colour = "black", size=1),
+  theme(panel.border = element_rect(fill=NA, colour = "transparent", size=1),
         #legend.text = element_text(size = 14),
         #legend.title = element_text(size = 16),
-        axis.text = element_text(size = 12, family = "Times"),
-        axis.title = element_text(size = 14, family = "Times", face = "bold"))+
+        axis.text = element_text(size = 8, family = "Times"),
+        axis.title = element_text(size = 10, family = "Times", face = "bold"))+
   theme(axis.text.x = element_blank(),
         axis.title.x = element_blank(),
         axis.ticks.x = element_blank())+
@@ -1274,8 +1319,8 @@ RDA_DIN <-  ggplot(site_scores_date_all, aes(Date,DIN_μM))+
         panel.grid.minor = element_blank())
 RDA_DIN
 
-ggsave("RDA_DIN.tiff", plot =   RDA_DIN, bg = "transparent", device = "tiff", width = 21.77, height = 10.86, units = c("cm"),
-       dpi = 300)
+ggsave("Manuscript/Figs/RDA_DIN.tiff", plot =   RDA_DIN, bg = "transparent", device = "tiff", width = 3.25, height = 1.73, units = c("in"),
+       dpi = 600)
 
 #then match up these plots in powerpoint and export as PDF
 
@@ -1516,11 +1561,11 @@ minidiscus_test <- minidiscus_calcs_complete %>%
   #scale_y_continuous(limits = c(0, 1), breaks = seq(0,1, by = 0.5))+
   facet_wrap(~tax.Genus, ncol = 1)+
   y+
-  theme(legend.position = "none")+
-  theme(axis.title = element_text(size = 16, family = "Times", face = "bold"))+
-  theme(axis.text.y = element_text(size = 14, family = "Times"))+
-  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, size = 14, hjust = 1, family = "Times"))+
-  theme(strip.text = element_text(size = 16, family = "Times", face = "italic"))+
+ theme(legend.position = "none")+
+  theme(axis.title = element_text(size = 12, family = "Times", face = "bold"))+
+  theme(axis.text.y = element_text(size = 10, family = "Times"))+
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, size = 10, hjust = 1, family = "Times"))+
+  theme(strip.text = element_text(size = 12, family = "Times", face = "italic"))+
   theme(strip.text = element_text( face = "italic"))+
   theme(panel.border = element_rect(colour = "black", fill = NA))+
   labs(y = "% ASV proportion", x = "Month")
@@ -1528,7 +1573,7 @@ minidiscus_test <- minidiscus_calcs_complete %>%
 minidiscus_test
 
 
-ggsave("ASV_freq_bars.pdf", plot = minidiscus_test, device = "pdf", width = 17, height = 20, units = c("cm"),
+ggsave("Manuscript/Figs/ASV_freq_bars.pdf", plot = minidiscus_test, device = "pdf", width = 2.2, height = 6, units = c("in"),
        dpi = 600)
 
 #comment out the 'legend.postion = "none"' line to get the full legend for the supplemental material
