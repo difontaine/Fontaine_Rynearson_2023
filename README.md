@@ -1,5 +1,5 @@
-# Fontaine Rynearson 2023 (in review at L&O)
-Associated code and custom database used for Fontaine and Rynearson 2023 manuscript 
+# Fontaine Rynearson 2023
+Associated code and custom database used for Fontaine and Rynearson 2023 manuscript published in Limnology and Oceanography.
 
 Files:
 1. read_threshold.R: Takes the mock community counts and taxonomy files and determines an appropriate read cut-off threshold in terms of read % abundance. The threshold we determined for this manuscript is 0.075%
