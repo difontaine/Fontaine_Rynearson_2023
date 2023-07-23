@@ -71,7 +71,6 @@ ggsave('Manuscript/Supplemental_Info/Figures/avg_temp.png', plot = temp_plot ,
        scale = 1, width = 5.5, height = 5 , units ="in",
        dpi = 300)
 
-#env_data_summarized[,-1]
 
 #plot DIN
 DIN_plot <-  ggplot(env_data_summarized, aes(factor(month), avg_DIN))+
@@ -489,20 +488,24 @@ total_genus_freq_all$freq <- total_genus_freq_all$freq*100
 gen_freq <- ggplot(total_genus_freq_all, aes(x = reorder(Genus, -freq), y = freq, fill = Present_LM))+
   geom_bar(stat = "identity", color = "black", width = 0.8, size = 0.2)+
   y+
-  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1, size = 10,family = "Times", face = "italic"),
-        axis.title.x = element_text(size = 12, family = "Times", face = "bold"),
-        axis.title.y = element_text(size = 12, family = "Times", face = "bold"),
-        axis.text.y = element_text(size = 10,family = "Times"))+
-  theme(legend.text = element_text(size = 10))+
-  theme(legend.title = element_text(size = 12))+
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1, size = 8,family = "Times", face = "italic"),
+        axis.title.x = element_text(size = 10, family = "Times", face = "bold"),
+        axis.title.y = element_text(size = 10, family = "Times", face = "bold"),
+        axis.text.y = element_text(size = 8,family = "Times"))+
+  theme(legend.text = element_text(size = 8))+
+  theme(legend.title = element_text(size = 9))+
   theme(panel.border = element_rect(colour = "black", fill = NA))+
   labs(x = "Genus", y = "Frequency of occurence (%)")+
   scale_fill_manual(values = c("black", "grey70", "white"), name = "Observed presence with LM", labels = c("Yes", "Not from 2008 - 2014 (study period)", "Never"))+
-  theme(legend.position = c(0.8, 0.7))+
+  theme(legend.position = c(0.75, 0.8))+
+  theme(legend.key.size = unit(0.3, "cm"))+
   scale_y_continuous(expand = c(0,1), limits = c(0,100))
 gen_freq
 
 ggsave("Manuscript/Figs/genus_freq.pdf", plot = gen_freq, device = "pdf", width = 7, height = 3.5, units = c("in"),
+       dpi = 600)
+
+ggsave("Manuscript/Figs/genus_freq.tiff", plot = gen_freq, device = "tiff", width = 5, height = 3, units = c("in"),
        dpi = 600)
 
 #### END CODE FOR FIGURE 3 #####
@@ -613,14 +616,14 @@ species_rich_plot <- ggplot(meta_count_joined, aes(x=as.factor(season), y=meta_r
   theme(axis.text = element_text(size = 10, family = "Times"),
         legend.text = element_text(size = 16, family = "Times"),
         legend.title = element_text(size = 18, face = "bold", family = "Times"))+
-  annotate("text", x=0.6, y=65, label = "a)", family = "Times", fontface = 2, size = 4)+
+ # annotate("text", x=0.6, y=65, label = "a)", family = "Times", fontface = 2, size = 4)+
   annotate(geom = "text", x = "Winter", y = 0, label = "n = 20", fontface = 1,size = 3, family = "Times")+
   annotate(geom = "text", x = "Spring", y = 0, label = "n = 19", fontface = 1,size = 3, family = "Times")+
   annotate(geom = "text", x = "Summer", y = 0, label = "n = 20", fontface = 1,size = 3, family = "Times")+
   annotate(geom = "text", x = "Fall", y = 0, label = "n = 21", fontface = 1,size = 3, family = "Times")
 species_rich_plot
 
-ggsave("Manuscript/Figs/species_rich_metaonly.tiff", plot = species_rich_plot, device = "tiff", width = 3.5, height = 3, units = c("in"),
+ggsave("Manuscript/Figs/species_rich_metaonly.pdf", plot = species_rich_plot, device = "pdf", width = 3.5, height = 3, units = c("in"),
        dpi = 600)
 
 
@@ -811,11 +814,15 @@ chl_richness_all <- meta_count_chl %>%
   # annotate(geom = "text", x = 25, y = 60, label = "y = -0.08x^2 + 1.6x + 32.4", fontface = 3,size = 3.5)+
   annotate("text", x=19.6, y=62, label = as.character(expression("y == -0.07*x^{2}")), parse = T, family = "Times", size = 3)+
   annotate("text", x=24, y=55, label = as.character(expression("R^{2} == 0.13")), parse = T, family = "Times", size = 3)+
-  annotate("text", x=0, y=65, label = "b)", family = "Times", fontface = 2, size = 4)+
+ # annotate("text", x=0, y=65, label = "b)", family = "Times", fontface = 2, size = 4)+
+  #labs(tag = "b)") +
+  #theme(plot.tag.position = c(0.02, 0.9), text = element_text(family = "Times", fontface = 2, size = 4))+
+ # annotate("text", x = -1, y = 60, label = "b)") +
+  #coord_cartesian(ylim = c(0, 65), clip = "off")+
   annotate("text", x=26.5, y=62, label = "+ 1.6x + 32.4", family = "Times", size = 3)
 chl_richness_all
 
-ggsave("Manuscript/Figs/species_rich_chl.tiff", plot =chl_richness_all , device = "tiff", width = 3.5, height = 3, units = c("in"),
+ggsave("Manuscript/Figs/species_rich_chl.pdf", plot =chl_richness_all , device = "pdf", width = 3.5, height = 3, units = c("in"),
        dpi = 600)
 
 ### END OF CODE FOR FIGURE 4 ###
