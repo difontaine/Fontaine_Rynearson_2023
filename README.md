@@ -1,8 +1,8 @@
 # Fontaine Rynearson 2023
-Associated code and custom database used for Fontaine and Rynearson 2023 manuscript published in Limnology and Oceanography.
+Associated code and custom database used for Fontaine and Rynearson 2023 manuscript published in Limnology and Oceanography. 
 
 Files:
-1. read_threshold.R: Takes the mock community counts and taxonomy files and determines an appropriate read cut-off threshold in terms of read % abundance. The threshold we determined for this manuscript is 0.075%
+1. read_threshold.R: Takes the mock community counts and taxonomy files and determines an appropriate read cut-off threshold in terms of read % abundance. The threshold we determined for this manuscript is 0.075%, 0.003% higher than the highest read % of the spurious ASVs (Supplemental Figure 2).
 
 2. Script_for_Fontaine_Rynearson.R: Main script used to process all data and create figures for this manuscript. The figures are commented out based on figure name in manuscript
 
