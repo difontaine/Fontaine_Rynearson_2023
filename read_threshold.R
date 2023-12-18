@@ -80,7 +80,7 @@ mock_spurious_plot_
 ggsave("Manuscript/Supplemental_Info/mock_spurious.png", plot = mock_spurious_plot_, device = "png", width = 12, height = 15, units = c("cm"),
        dpi = 300)
 
-#The determined threshold is 0.075%, which is 0.03% highers than the highest spurious read in the mock communities. Now, go back to main script and apply this threshold for data processing
+#The determined threshold is 0.075%, which is 0.003% higher than the highest spurious read in the mock communities. Now, go back to main script and apply this threshold for data processing
 
 #Counting the diatom percent reads from the mock_taxa_complete DF
 moock_counts <- mock_with_taxa_complete %>%
